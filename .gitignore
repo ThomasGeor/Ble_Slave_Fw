@@ -1,0 +1,9 @@
+# Ignore these directories and files 
+/build
+*.json
+*.out
+*.cmake
+*.bin
+*.cache
+*.log
+*.check_cache
