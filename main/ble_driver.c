@@ -16,7 +16,7 @@ static esp_gattc_descr_elem_t *descr_elem_result = NULL;
 static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
 static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
-static void ble_client_kill_connection(void);
+// static void ble_client_kill_connection(void);
 
 static esp_gatt_if_t gattc_if_ex;
 
@@ -466,13 +466,13 @@ void ble_client_init(void)
     }
 }
 
-static void ble_client_kill_connection(void)
-{
-  esp_bluedroid_disable();
-  esp_bluedroid_deinit();
-  esp_bt_controller_disable();
-  esp_bt_controller_deinit();
-}
+// static void ble_client_kill_connection(void)
+// {
+//   esp_bluedroid_disable();
+//   esp_bluedroid_deinit();
+//   esp_bt_controller_disable();
+//   esp_bt_controller_deinit();
+// }
 
 void ble_write_door_state_char(uint8_t dr_st)
 {
