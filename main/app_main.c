@@ -30,7 +30,7 @@
 
 // Globals
 static const char* alarm_tag = "BURGLAR_ALARM";
-static uint8_t reed_state;
+RTC_DATA_ATTR  uint8_t reed_state;
 const gpio_config_t io_conf  = {
                                  .pull_up_en = 1,
                                  .mode = GPIO_MODE_INPUT,
@@ -48,9 +48,8 @@ static void timer_int_task(void* arg)
     {
       if(xQueueReceive(s_timer_queue, &evt, portMAX_DELAY))
       {
-          ESP_LOGI(alarm_tag,"Sent packet %d!",
-                              reed_state == 0? MGNTC_REED_CLOSED_ST : MGNTC_REED_BREACH_ST);
-          ble_write_door_state_char(reed_state == 0? MGNTC_REED_CLOSED_ST : MGNTC_REED_BREACH_ST);
+          ESP_LOGI(alarm_tag,"Sent packet %d!",reed_state);
+          ble_write_door_state_char(reed_state);
           timer_pause(TIMER_GROUP_0, TIMER_0);
           vTaskDelete(NULL);
       }
@@ -60,7 +59,8 @@ static void timer_int_task(void* arg)
 void app_main(void)
 {
     // Set the LOGS that you want to see.
-    esp_log_level_set(alarm_tag,ESP_LOG_INFO);
+    // esp_log_level_set(alarm_tag,ESP_LOG_INFO);
+    esp_log_level_set(alarm_tag,ESP_LOG_ERROR);
 
     // Woke up
     if(esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
@@ -81,9 +81,7 @@ void app_main(void)
     reed_state = gpio_get_level(MG_SNS_PIN);
     ESP_LOGI(alarm_tag,"Start state %d", reed_state);
 
-    // Setup the controller's sleeping
-    rtc_gpio_pulldown_dis(MG_SNS_PIN);
-    rtc_gpio_pullup_en(MG_SNS_PIN);
+    // Setup the controller's wake up source
     rtc_gpio_init(MG_SNS_PIN);
     if(reed_state == MGNTC_REED_BREACH_ST)
     {
@@ -94,7 +92,7 @@ void app_main(void)
       reed_state = MGNTC_REED_BREACH_ST;      
     }
     ESP_ERROR_CHECK(esp_sleep_enable_ext0_wakeup(MG_SNS_PIN, reed_state));
-    ESP_LOGI(alarm_tag,"Enabling GPIO wakeup on pin GPIO%d\n", MG_SNS_PIN);
+    ESP_LOGI(alarm_tag,"Enabling GPIO wakeup on pin GPIO%d", MG_SNS_PIN);
 
     // To minimize current consumption in deep sleep
     rtc_gpio_isolate(GPIO_NUM_12);
