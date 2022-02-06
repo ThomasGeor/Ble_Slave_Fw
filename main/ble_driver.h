@@ -20,7 +20,7 @@
  #include "esp_bt_defs.h"
  #include "esp_bt_main.h"
  #include "esp_gatt_common_api.h"
- #include "gpio_driver.h"
+  #include "esp_sleep.h"
 
  #include "sdkconfig.h"
 
@@ -31,7 +31,7 @@
  #define PROFILE_NUM                1
  #define PROFILE_A_APP_ID           0
  #define INVALID_HANDLE             0
-
+ #define SCAN_INTERVAL              2 // Seconds 
 
 /* Struct declarations */
 struct gattc_profile_inst
@@ -49,3 +49,4 @@ struct gattc_profile_inst
 /* Function declarations */
 void ble_client_init();
 void ble_write_door_state_char(uint8_t dr_st);
+void ble_client_kill_connection(void);
