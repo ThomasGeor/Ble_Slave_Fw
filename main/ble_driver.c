@@ -16,7 +16,6 @@ static esp_gattc_descr_elem_t *descr_elem_result = NULL;
 static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
 static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
-static void ble_client_kill_connection(void);
 
 static esp_gatt_if_t gattc_if_ex;
 
@@ -156,24 +155,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                     {
                         gattc_if_ex = gattc_if;
                         gl_profile_tab[PROFILE_A_APP_ID].char_handle = char_elem_result[0].char_handle;
-                        // uint8_t dr_st = 0;
-                        // status = esp_ble_gattc_prepare_write( gattc_if,
-                        //                                       p_data->search_cmpl.conn_id,
-                        //                                       char_elem_result[0].char_handle,
-                        //                                       0,
-                        //                                       sizeof(uint8_t),
-                        //                                       &dr_st,
-                        //                                       ESP_GATT_AUTH_REQ_NONE);
-                        //
-                        // if (status != ESP_GATT_OK){
-                        //     ESP_LOGE(GATTC_TAG, "esp_ble_gattc_get_descr_by_char_handle error");
-                        // }
-                        // else
-                        // {
-                        //   esp_ble_gattc_execute_write(gattc_if,
-                        //                               gl_profile_tab[PROFILE_A_APP_ID].conn_id,
-                        //                               true);
-                        // }
                     }
                 }
                 /* free char_elem_result */
@@ -181,8 +162,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             }else{
                 ESP_LOGE(GATTC_TAG, "no char found");
             }
-            //start kill ble task
-            // ble_client_kill_connection();
         }
          break;
     case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
@@ -301,7 +280,7 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
     switch (event) {
     case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
         //the unit of the duration is second
-        uint32_t duration = 30;
+        uint32_t duration = SCAN_INTERVAL;
         esp_ble_gap_start_scanning(duration);
         break;
     }
@@ -407,6 +386,9 @@ static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
 
 void ble_client_init(void)
 {
+    // Disable the logs to let the ble go faster
+    esp_log_level_set(GATTC_TAG,ESP_LOG_ERROR);
+
     // Initialize NVS.
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -466,7 +448,7 @@ void ble_client_init(void)
     }
 }
 
-static void ble_client_kill_connection(void)
+void ble_client_kill_connection(void)
 {
   esp_bluedroid_disable();
   esp_bluedroid_deinit();
@@ -476,7 +458,6 @@ static void ble_client_kill_connection(void)
 
 void ble_write_door_state_char(uint8_t dr_st)
 {
-  // uint8_t dr_st = 0;
   esp_err_t status = esp_ble_gattc_prepare_write( gattc_if_ex,
                                                   gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                                   gl_profile_tab[PROFILE_A_APP_ID].char_handle,
